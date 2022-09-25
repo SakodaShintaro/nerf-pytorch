@@ -1,0 +1,13 @@
+expname = nerf_hallway_low
+basedir = ./logs
+datadir = /home/dominic/a1_bags/train_images/colmap_hallway_low
+dataset_type = metric_scale
+
+factor = 4
+llffhold = 2
+
+N_rand = 1024
+N_samples = 64
+N_importance = 64
+use_viewdirs = True
+raw_noise_std = 1e0
