@@ -3,7 +3,7 @@
 ## Fork specific changes
 We make a few small changes to the original repo to train our NeRF with metric scale. To run, setup using the original repo instructions then use:
 ```
-bash python run_nerf.py --config configs/<your config file> --focal <your focal length> --no_ndc
+python run_nerf.py --config configs/<your config file> --focal <your focal length> --no_ndc
 ```
 As an example, we use jackal.txt to train our NeRF.
 
