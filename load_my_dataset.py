@@ -80,9 +80,10 @@ def load_my_data(basedir, half_res=False, testskip=1):
 
     render_poses = poses
     if half_res:
-        H = H // 2
-        W = W // 2
-        focal = focal / 2.
+        RESIZE_FACTOR = 2
+        H = H // RESIZE_FACTOR
+        W = W // RESIZE_FACTOR
+        focal = focal / RESIZE_FACTOR
 
         imgs_half_res = np.zeros((imgs.shape[0], H, W, 3))
         for i, img in enumerate(imgs):
