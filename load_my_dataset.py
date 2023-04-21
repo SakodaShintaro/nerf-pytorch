@@ -52,6 +52,7 @@ def load_my_data(basedir, half_res=False, testskip=1):
     pose_quat = df_pose[['qx', 'qy', 'qz', 'qw']].values
     rotation_mat = Rotation.from_quat(pose_quat).as_matrix()
     n = len(rotation_mat)
+    pose_xyz -= pose_xyz[0]
     print(f"n = {n}")
     identity = np.eye(4, 4, dtype=np.float32)
     poses = np.stack([identity] * n)
