@@ -14,10 +14,10 @@ import matplotlib.pyplot as plt
 from run_nerf_helpers import *
 
 from load_llff import load_llff_data
-from load_metric_scale import load_metric_scale_data
 from load_deepvoxels import load_dv_data
 from load_blender import load_blender_data
 from load_LINEMOD import load_LINEMOD_data
+from load_my_dataset import load_my_data
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -458,10 +458,6 @@ def config_parser():
     parser.add_argument("--ft_path", type=str, default=None, 
                         help='specific weights npy file to reload for coarse network')
 
-    # camera params
-    parser.add_argument("--focal", type=int, default=638, 
-                    help='camera focal length')
-
     # rendering options
     parser.add_argument("--N_samples", type=int, default=64, 
                         help='number of coarse samples per ray')
@@ -495,7 +491,7 @@ def config_parser():
 
     # dataset options
     parser.add_argument("--dataset_type", type=str, default='llff', 
-                        help='options: llff / blender / deepvoxels / metric_scale')
+                        help='options: llff / blender / deepvoxels')
     parser.add_argument("--testskip", type=int, default=8, 
                         help='will load 1/N images from test/val sets, useful for large datasets like deepvoxels')
 
@@ -571,42 +567,6 @@ def train():
             far = 1.
         print('NEAR FAR', near, far)
 
-    elif args.dataset_type == 'metric_scale':
-        images, poses, bds, render_poses, i_test = load_metric_scale_data(args.datadir, args.factor,
-                                                                  recenter=True, bd_factor=None,
-                                                                  spherify=args.spherify,
-                                                                  focal=args.focal)
-        hwf = poses[0,:3,-1]
-        poses = poses[:,:3,:4]
-
-        print("Printing Poses:")
-        for p_print in poses:
-            print(p_print)
-            print()
-
-        print('Loaded llff', images.shape, render_poses.shape, hwf, args.datadir)
-        if not isinstance(i_test, list):
-            i_test = [i_test]
-
-        if args.llffhold > 0:
-            print('Auto LLFF holdout,', args.llffhold)
-            i_test = np.arange(images.shape[0])[::args.llffhold]
-
-        i_val = i_test
-        i_train = np.array([i for i in np.arange(int(images.shape[0])) if
-                        (i not in i_test and i not in i_val)])
-
-        print('DEFINING BOUNDS')
-        if args.no_ndc:
-            near = 0
-            far = 8
-            
-        else:
-            print("WARNING YOU ARE USING NDC BUT I THINK YOU WANT METRIC SCALE")
-            near = 0.
-            far = 1.
-        print('NEAR FAR', near, far)
-
     elif args.dataset_type == 'blender':
         images, poses, render_poses, hwf, i_split = load_blender_data(args.datadir, args.half_res, args.testskip)
         print('Loaded blender', images.shape, render_poses.shape, hwf, args.datadir)
@@ -643,6 +603,19 @@ def train():
         hemi_R = np.mean(np.linalg.norm(poses[:,:3,-1], axis=-1))
         near = hemi_R-1.
         far = hemi_R+1.
+
+    elif args.dataset_type == "my_dataset":
+        images, poses, render_poses, hwf, i_split = load_my_data(args.datadir, args.half_res, args.testskip)
+        print('Loaded blender', images.shape, render_poses.shape, hwf, args.datadir)
+        i_train, i_val, i_test = i_split
+
+        near = 2.
+        far = 6.
+
+        if args.white_bkgd:
+            images = images[...,:3]*images[...,-1:] + (1.-images[...,-1:])
+        else:
+            images = images[...,:3]
 
     else:
         print('Unknown dataset type', args.dataset_type, 'exiting')
