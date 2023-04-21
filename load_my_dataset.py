@@ -73,8 +73,7 @@ def load_my_data(basedir, half_res=False, testskip=1):
     # 本当はタイムスタンプを見て上手く合わせるべき
     poses = poses[:n] # TODO Fix
 
-    counts = [0, n, 2 * n, 3 * n]
-    i_split = [np.arange(counts[i], counts[i + 1]) for i in range(3)]
+    i_split = [np.arange(0, n) for _ in range(3)]
 
     H, W = imgs[0].shape[:2]
     focal = (fx + fy) / 2
