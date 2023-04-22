@@ -48,15 +48,13 @@ def load_my_data(basedir, half_res=False, testskip=1):
 
     print(f"Load Pose")
     df_pose = pd.read_csv(f"{basedir}/pose.tsv", sep="\t")
+    n = len(df_pose)
     pose_xyz = df_pose[['x', 'y', 'z']].values
     pose_quat = df_pose[['qx', 'qy', 'qz', 'qw']].values
     rotation_mat = Rotation.from_quat(pose_quat).as_matrix()
-    n = len(rotation_mat)
     pose_xyz -= pose_xyz[0]
-    print(f"n = {n}")
     identity = np.eye(4, 4, dtype=np.float32)
     poses = np.stack([identity] * n)
-    print(rotation_mat.shape, poses.shape)
     poses[:, 0:3, 0:3] = rotation_mat
     poses[:, 0:3, 3:4] = np.expand_dims(pose_xyz, -1)
 
@@ -66,21 +64,19 @@ def load_my_data(basedir, half_res=False, testskip=1):
     for image_path in image_path_list:
         imgs.append(imageio.imread(image_path))
     imgs = (np.array(imgs) / 255.).astype(np.float32)
-    print(f"imgs.shape = {imgs.shape}")
 
-    n = len(imgs)
+    assert len(imgs) == len(df_pose)
 
-    # 本当はタイムスタンプを見て上手く合わせるべき
-    poses = poses[:n] # TODO Fix
-
-    i_split = [np.arange(0, n) for _ in range(3)]
+    i_split = [np.arange(0, n),
+               np.arange(0, n // 10),
+               np.arange(0, n // 10)]
 
     H, W = imgs[0].shape[:2]
     focal = (fx + fy) / 2
 
-    render_poses = poses
+    render_poses = poses[0:n // 10]
     if half_res:
-        RESIZE_FACTOR = 2
+        RESIZE_FACTOR = 3
         H = H // RESIZE_FACTOR
         W = W // RESIZE_FACTOR
         focal = focal / RESIZE_FACTOR
