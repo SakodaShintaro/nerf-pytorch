@@ -720,6 +720,8 @@ def train():
 
     # Summary writers
     # writer = SummaryWriter(os.path.join(basedir, 'summaries', expname))
+    loss_log = open(os.path.join(basedir, expname, 'loss_log.txt'), 'w')
+    loss_log.write(f"iteration\tloss\tpsnr\n")
     
     start = start + 1
     for i in trange(start, N_iters):
@@ -841,6 +843,9 @@ def train():
     
         if i%args.i_print==0:
             tqdm.write(f"[TRAIN] Iter: {i} Loss: {loss.item()}  PSNR: {psnr.item()}")
+            loss_str = f"{i}\t{loss.item():.4f}\t{psnr.item():.2f}\n"
+            loss_log.write(loss_str)
+            loss_log.flush()
         """
             print(expname, i, psnr.numpy(), loss.numpy(), global_step.numpy())
             print('iter time {:.05f}'.format(dt))
